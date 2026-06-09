@@ -39,15 +39,30 @@ stock). After that, any out-of-stock → in-stock transition posts an alert.
 ## Deploy (cheap VPS)
 
 Works on a $5 DigitalOcean droplet or an Oracle Cloud Always-Free instance
-(Ubuntu 24.04):
+(VM.Standard.A1.Flex, on-demand capacity). Only outbound traffic is needed —
+no ingress ports to open.
+
+First install Node 22 and git:
 
 ```bash
-# on the VPS
-sudo apt update && sudo apt install -y nodejs npm
-sudo useradd -r -m -d /opt/pokeping pokeping
-sudo -u pokeping git clone <your-repo> /opt/pokeping   # or rsync the folder up
+# Ubuntu 24.04 (apt's nodejs is too old — use NodeSource)
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt install -y nodejs git
+
+# Oracle Linux 9
+sudo dnf module install -y nodejs:22/common
+sudo dnf install -y git
+```
+
+Then deploy:
+
+```bash
+sudo useradd -r pokeping
+sudo git clone https://github.com/WidestDoggo/PokePing.git /opt/pokeping
+sudo chown -R pokeping: /opt/pokeping
 cd /opt/pokeping && sudo -u pokeping npm install --omit=dev
-sudo -u pokeping cp .env.example .env && sudo -u pokeping nano .env  # paste webhook URL
+sudo -u pokeping cp .env.example .env
+sudoedit -u pokeping /opt/pokeping/.env   # paste webhook URL
 sudo cp deploy/pokeping.service /etc/systemd/system/
 sudo systemctl daemon-reload && sudo systemctl enable --now pokeping
 journalctl -u pokeping -f
