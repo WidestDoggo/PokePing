@@ -20,7 +20,10 @@ dropped.
 2. `copy .env.example .env` and paste your webhook URL into `DISCORD_WEBHOOK_URL`
    (Discord: channel settings → Integrations → Webhooks → New Webhook → Copy Webhook URL)
 3. `npm run test:webhook` — posts a test embed; confirm it shows up in your channel
-4. Edit `products.json` — find item IDs with `npm run find -- "pokemon 151 booster bundle"`
+4. Edit `products.json` — watch a whole search/category:
+   `{ "store": "walmart", "type": "category", "query": "pokemon cards", "name": "All Pokémon card products", "maxPages": 25 }`
+   or individual items (find IDs with `npm run find -- "pokemon 151 booster bundle"`):
+   `{ "store": "walmart", "id": "...", "name": "..." }`
 5. `npm start`
 
 The first pass seeds the cache silently (no alert spam for items already in
@@ -72,6 +75,13 @@ Note: `better-sqlite3` ships prebuilt binaries — the DB file (`pokeping.db`) i
 machine-local, so don't copy it between machines; it reseeds itself on first run.
 
 ## Notes / limits
+
+- Category watches scan walmart.ca search listing pages (~40 items/request), so
+  a 700+ item catalog costs ~19 requests per pass. Listing availability data
+  flickers in both directions (the fulfillment context varies per request), so:
+  an item only counts as sold out after 3 consecutive passes agree, a suspected
+  restock is confirmed against the product page before alerting, and a per-item
+  cooldown (`ALERT_COOLDOWN_HOURS`, default 6) stops repeat alerts.
 
 - Scrape failures (bot challenge, HTTP errors, layout changes) are logged and
   the cached state is left untouched, so a transient block can never fake an
