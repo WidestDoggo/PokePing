@@ -1,0 +1,22 @@
+# systemd unit for the VPS deploy (DigitalOcean droplet / Oracle Cloud free tier).
+# Install:
+#   sudo cp deploy/pokeping.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now pokeping
+# Logs:
+#   journalctl -u pokeping -f
+[Unit]
+Description=PokePing - Pokemon TCG restock alerter
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pokeping
+WorkingDirectory=/opt/pokeping
+ExecStart=/usr/bin/node src/index.js
+Restart=always
+RestartSec=30
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
